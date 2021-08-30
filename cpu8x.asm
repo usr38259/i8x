@@ -644,7 +644,6 @@ ilxi:	shr	eax, 3
 	ret
 
 istax:	shr	eax, 3
-	and	eax, 110b
 	movzx	edx, word ptr [ebx][eax]
 	mov	al, byte ptr [ebx].I80r.regA
 	POKEB
@@ -660,7 +659,6 @@ ildax:	shr	eax, 3
 	ret
 
 iinx:	shr	eax, 3
-	and	eax, 110b
 	inc	word ptr [ebx][eax]
 	xor	eax, eax
 	ret
@@ -674,7 +672,7 @@ idcx:	shr	eax, 3
 iinr:	shr	eax, 3
 	and	eax, 111b
 	xor	eax, 1
-	add	byte ptr [ebx][eax], 1
+	inc	byte ptr [ebx][eax]
 iinr1:	mov	dh, [ebx].I80r.regF
 	lahf
 	and	dh, CF
@@ -694,12 +692,12 @@ ENDIF
 	mov	[ebx].I80r.regF, ah
 	xor	eax, eax
 	ret
-iinra:	add	byte ptr [ebx].I80r.regA, 1
+iinra:	inc	byte ptr [ebx].I80r.regA
 	jmp	short iinr1
 
 iinrm:	PEEKB	regHL
 	mov	dh, [ebx].I80r.regF
-	add	al, 1
+	inc	al
 	lahf
 	and	dh, CF
 IFDEF	I8XMIX
@@ -723,7 +721,7 @@ ENDIF
 idcr:	shr	eax, 3
 	and	eax, 111b
 	xor	eax, 1
-	sub	byte ptr [ebx][eax], 1
+	dec	byte ptr [ebx][eax]
 @@:	mov	dh, [ebx].I80r.regF
 	lahf
 	and	ah, NOT CF
@@ -733,11 +731,11 @@ idcr:	shr	eax, 3
 	mov	[ebx].I80r.regF, ah
 	xor	eax, eax
 	ret
-idcra:	sub	byte ptr [ebx].I80r.regA, 1
+idcra:	dec	byte ptr [ebx].I80r.regA
 	jmp	short @b
 
 idcrm:	PEEKB	regHL
-	sub	al, 1
+	dec	al
 	mov	dh, [ebx].I80r.regF
 	lahf
 	and	ah, NOT CF
@@ -783,51 +781,53 @@ ENDIF
 inop:	xor	eax, eax
 	ret
 
-irlc:	and	[ebx].I80r.regF, NOT CF
+irlc:	mov	ah, [ebx].I80r.regF
+	and	ah, NOT CF
 	rol	[ebx].I80r.regA, 1
-	jnc	short @F
-	or	[ebx].I80r.regF, CF
-@@:	xor	eax, eax
+	jnc	short @f
+	or	ah, CF
+@@:	mov	[ebx].I80r.regF, ah
+	xor	eax, eax
 	ret
 
-irrc:	and	[ebx].I80r.regF, NOT CF
+irrc:	mov	ah, [ebx].I80r.regF
+	and	ah, NOT CF
 	ror	[ebx].I80r.regA, 1
-	jnc	short @F
-	or	[ebx].I80r.regF, CF
-@@:	xor	eax, eax
+	jnc	short @f
+	or	ah, CF
+@@:	mov	[ebx].I80r.regF, ah
+	xor	eax, eax
 	ret
 
 IFDEF	I386ONLY
 iral:	mov	ah, [ebx].I80r.regF
+	mov	ch, ah
 	and	ah, NOT CF
+	shr	ch, 1
+ELSE
+iral:	mov	eax, dword ptr [ebx].I80.regPSW
+	btr	eax, 8
+ENDIF
 	rcl	[ebx].I80r.regA, 1
 	jnc	short @f
 	or	ah, CF
 @@:	mov	[ebx].I80r.regF, ah
-ELSE
-iral:	btr	dword ptr [ebx].I80.regPSW, 8
-	rcl	[ebx].I80r.regA, 1
-	jnc	short @F
-	or	[ebx].I80r.regF, CF
-@@:
-ENDIF
 	xor	eax, eax
 	ret
 
 IFDEF	I386ONLY
 irar:	mov	ah, [ebx].I80r.regF
+	mov	ch, ah
 	and	ah, NOT CF
+	shr	ch, 1
+ELSE
+irar:	mov	eax, dword ptr [ebx].I80.regPSW
+	btr	eax, 8
+ENDIF
 	rcr	[ebx].I80r.regA, 1
 	jnc	short @f
 	or	ah, CF
 @@:	mov	[ebx].I80r.regF, ah
-ELSE
-irar:	btr	dword ptr [ebx].I80.regPSW, 8
-	rcr	[ebx].I80r.regA, 1
-	jnc	@F
-	or	[ebx].I80r.regF, CF
-@@:
-ENDIF
 	xor	eax, eax
 	ret
 
@@ -1456,11 +1456,11 @@ irlde:	mov	ch, [ebx].I80r.regF
 	mov	[ebx].I80r.regF, ch
 	ret
 
-irim:	mov	al, [ebx].I80.imode
+irim:	mov	al, [ebx].I80.imode		; not implemented
 	mov	[ebx].I80r.regA, al
 	ret
 
-isim:	mov	al, [ebx].I80r.regA
+isim:	mov	al, [ebx].I80r.regA		; not implemented
 	mov	[ebx].I80.imode, al
 	ret
 
