@@ -877,11 +877,12 @@ ENDIF
 	xor	eax, eax
 	ret
 IFNDEF	NOI8085
-@@:	test	eax, 2
-	jnz	short idaa1
+@@:	test	eax, VF
+	jz	short idaa1
 IFDEF	EXACTF
 	mov	cl, al
 ENDIF
+	xor	ah, AF
 	sahf
 	das
 	jmp	short idaa2
