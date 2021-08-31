@@ -869,9 +869,9 @@ idaa2:	lahf
 	and	ah, NOT (CF OR PF)
 	or	ah, dh
 ELSE
-	sahf
+idaa1:	sahf
 	daa
-	lahf
+idaa2:	lahf
 ENDIF
 	mov	[ebx].I80.regPSW, ax
 	xor	eax, eax
@@ -879,7 +879,9 @@ ENDIF
 IFNDEF	NOI8085
 @@:	test	eax, 2
 	jnz	short idaa1
+IFDEF	EXACTF
 	mov	cl, al
+ENDIF
 	sahf
 	das
 	jmp	short idaa2
