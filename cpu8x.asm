@@ -6,6 +6,7 @@
 ;NOI8080	equ -1
 ;NOI8085	equ -1
 ;I386ONLY	equ -1
+;MEMSUB		equ -1
 EXACTF		equ -1
 USEWRLOG	equ -1
 COUNTERS	equ -1
@@ -197,7 +198,7 @@ _i85idef	label near ptr dword
 	dd	ircc,	ishlx,	ijcc,	iin,	iccc,	ijccx,	isbi,	irst
 	dd	ircc,	ipop,	ijcc,	ixthl,	iccc,	ipush,	iani,	irst
 	dd	ircc,	ipchl,	ijcc,	ixchg,	iccc,	ilhlx,	ixri,	irst
-	dd	ircc,	ipop,	ijcc,	idi,	iccc,	ipsw85,	iori,	irst
+	dd	ircc,	ipop,	ijcc,	idi,	iccc,	ippsw,	iori,	irst
 	dd	ircc,	isphl,	ijcc,	iei,	iccc,	ijccx,	icpi,	irst
 ENDIF
 IFDEF	NOI8080
@@ -468,6 +469,8 @@ JCC85ATCK	equ 3
 CCC85ATCK	equ 9
 RCC85ATCK	equ 6
 
+IFNDEF	MEMSUB
+
 peekbs	proc	near private
 IFNDEF	FASTCALLBACK
 	push	edx
@@ -555,11 +558,9 @@ ENDIF
 	jb	short meme
 	cmp	dx, [ebx].I80.mrhigh
 	jbe	short mrngok
-meme:
-	call	peekbs
+meme:	call	peekbs
 	jmp	short @f
-mrngok:
-	mov	eax, [ebx].I80.mem
+mrngok:	mov	eax, [ebx].I80.mem
 	mov	al, byte ptr [eax][edx]
 @@:
 	endm
@@ -626,6 +627,148 @@ IFDEF	USEWRLOG
 ENDIF
 @@:
 	endm
+
+ELSE
+
+peekbs	proc	near private
+	cmp	dx, [ebx].I80.mrlow
+	jb	short meme
+	cmp	dx, [ebx].I80.mrhigh
+	jbe	short mrngok
+meme:
+IFNDEF	FASTCALLBACK
+	push	edx
+	push	ebx
+ELSE
+	mov	ecx, ebx
+ENDIF
+	call	[ebx].I80.peekb
+	test	eax, eax
+	jns	short peekbsok
+	add	esp, 4
+	ret
+mrngok:	mov	eax, [ebx].I80.mem
+	mov	al, byte ptr [eax][edx]
+peekbsok:
+	ret
+peekbs	endp
+
+peekws	proc	near private
+	movzx	eax, [ebx].I80.mrhigh
+	dec	eax
+	cmp	dx, [ebx].I80.mrlow
+	jb	short meme
+	cmp	dx, ax
+	jbe	short mrngok
+meme:
+IFNDEF	FASTCALLBACK
+	push	edx
+	push	ebx
+ELSE
+	mov	ecx, ebx
+ENDIF
+	call	[ebx].I80.peekw
+	test	eax, eax
+	jns	short peekwsok
+	add	esp, 4
+	ret
+mrngok:	mov	eax, [ebx].I80.mem
+	mov	ax, word ptr [eax][edx]
+peekwsok:
+	ret
+peekws	endp
+
+pokebs	proc	near private
+IFDEF	USEWRLOG
+	mov	[ebx].I80.pokeaddr, dx
+	mov	[ebx].I80.pokeval, ax
+ENDIF
+	cmp	dx, [ebx].I80.mwlow
+	jb	short meme
+	cmp	dx, [ebx].I80.mwhigh
+	jbe	short mrngok
+meme:	push	eax
+IFNDEF	FASTCALLBACK
+	push	edx
+	push	ebx
+ELSE
+	mov	ecx, ebx
+ENDIF
+	call	[ebx].I80.pokeb
+	test	eax, eax
+	jns	short pokebsok
+	add	esp, 4
+	ret
+mrngok:	mov	ecx, [ebx].I80.mem
+	mov	byte ptr [ecx][edx], al
+pokebsok:
+IFDEF	USEWRLOG
+	mov	[ebx].I80.mpoke, 1
+ENDIF
+	ret
+pokebs	endp
+
+pokews	proc	near private
+IFDEF	USEWRLOG
+	mov	[ebx].I80.pokeaddr, dx
+	mov	[ebx].I80.pokeval, ax
+ENDIF
+	movzx	ecx, [ebx].I80.mwhigh
+	cmp	dx, [ebx].I80.mwlow
+	jb	short meme
+	dec	ecx
+	cmp	dx, cx
+	jbe	short mrngok
+meme:	push	eax
+IFNDEF	FASTCALLBACK
+	push	edx
+	push	ebx
+ELSE
+	mov	ecx, ebx
+ENDIF
+	call	[ebx].I80.pokew
+	test	eax, eax
+	jns	short pokewsok
+	add	esp, 4
+	ret
+mrngok:	mov	ecx, [ebx].I80.mem
+	mov	word ptr [ecx][edx], ax
+pokewsok:
+IFDEF	USEWRLOG
+	mov	[ebx].I80.mpoke, 2
+ENDIF
+	ret
+pokews	endp
+
+PEEKB	macro	reg
+IFNB	<reg>
+	movzx	edx, [ebx].I80.reg
+ENDIF
+	call	peekbs
+	endm
+
+PEEKW	macro	reg
+IFNB	<reg>
+	movzx	edx, [ebx].I80.reg
+ENDIF
+	call	peekws
+	endm
+
+POKEB	macro	reg
+IFNB	<reg>
+	movzx	edx, [ebx].I80.reg
+ENDIF
+	call	pokebs
+	endm
+
+POKEW	macro	reg
+IFNB	<reg>
+	movzx	edx, [ebx].I80.reg
+ENDIF
+	call	pokews
+	endm
+
+ENDIF
 
 IFNDEF	NOI8080
 IFNDEF	NOI8085
@@ -854,7 +997,18 @@ ilda:	PEEKB
 idaa:	mov	ax, [ebx].I80.regPSW
 IFDEF	I8XMIX
 	TSTZ85
-	jnz	short @f
+	jz	short idaa1
+ENDIF
+IFNDEF	NOI8085
+	test	eax, VF
+	jz	short idaa1
+IFDEF	EXACTF
+	mov	cl, al
+ENDIF
+	xor	ah, AF
+	sahf
+	das
+	jmp	short idaa2
 ENDIF
 IFDEF	EXACTF
 idaa1:	mov	cl, al
@@ -876,17 +1030,6 @@ ENDIF
 	mov	[ebx].I80.regPSW, ax
 	xor	eax, eax
 	ret
-IFNDEF	NOI8085
-@@:	test	eax, VF
-	jz	short idaa1
-IFDEF	EXACTF
-	mov	cl, al
-ENDIF
-	xor	ah, AF
-	sahf
-	das
-	jmp	short idaa2
-ENDIF
 
 icma:	not	[ebx].I80r.regA
 IFDEF	I8XMIX
@@ -950,6 +1093,30 @@ ihlt:	mov	[ebx].I80.flag, -1
 	xor	eax, eax
 	ret
 
+PEEKOPM	macro
+IFDEF	FOLDOPM
+IFNDEF	MEMSUB
+	call	iopm
+ELSE
+.ERR	<FOLDOPM when MEMSUB>
+ENDIF
+ELSE
+	PEEKB	regHL
+	mov	dl, al
+ENDIF
+	endm
+
+IFDEF	FOLDOPM
+IFNDEF	MEMSUB
+iopm:	push	iopmr
+	PEEKB	regHL
+	mov	dl, al
+	ret
+iopmr:	add	esp, 4
+	ret
+ENDIF
+ENDIF
+
 iadd:	mov	ecx, eax
 	and	ecx, 111b
 	xor	ecx, 1
@@ -959,7 +1126,7 @@ iadi:	mov	ax, [ebx].I80.regPSW
 	lahf
 IFDEF	I8XMIX
 	TSTZ85
-	jnz	short @f
+	jz	short @f
 ENDIF
 IFNDEF	NOI8085
 	and	ah, NOT VF
@@ -970,8 +1137,7 @@ ENDIF
 iadda:	mov	dl, [ebx].I80r.regA
 	jmp	short iadi
 
-iaddm:	PEEKB	regHL
-	mov	dl, al
+iaddm:	PEEKOPM
 	jmp	short iadi
 
 iadc:	mov	ecx, eax
@@ -984,7 +1150,7 @@ iaci:	mov	ax, [ebx].I80.regPSW
 	lahf
 IFDEF	I8XMIX
 	TSTZ85
-	jnz	short @f
+	jz	short @f
 ENDIF
 IFNDEF	NOI8085
 	and	ah, NOT VF
@@ -995,8 +1161,7 @@ ENDIF
 iadca:	mov	dl, [ebx].I80r.regA
 	jmp	short iaci
 
-iadcm:	PEEKB	regHL
-	mov	dl, al
+iadcm:	PEEKOPM
 	jmp	short iaci
 
 isub:	mov	ecx, eax
@@ -1015,8 +1180,7 @@ ENDIF
 isuba:	mov	dl, [ebx].I80r.regA
 	jmp	short isui
 
-isubm:	PEEKB	regHL
-	mov	dl, al
+isubm:	PEEKOPM
 	jmp	short isui
 
 isbb:	mov	ecx, eax
@@ -1036,8 +1200,7 @@ ENDIF
 isbba:	mov	dl, [ebx].I80r.regA
 	jmp	short isbi
 
-isbbm:	PEEKB	regHL
-	mov	dl, al
+isbbm:	PEEKOPM
 	jmp	short isbi
 
 iana:	mov	ecx, eax
@@ -1064,15 +1227,21 @@ IFNDEF	NOI8080
 	and	cl, AF
 	or	ah, cl
 ENDIF
+IFDEF	I8XMIX
+	jmp	short iana1
 ENDIF
-@@:	mov	[ebx].I80.regPSW, ax
+IFNDEF	I8085
+@@:	or	ah, AF
+iana1:
+ENDIF
+ENDIF
+	mov	[ebx].I80.regPSW, ax
 	xor	eax, eax
 	ret
 ianaa:	mov	dl, [ebx].I80r.regA
 	jmp	short iani
 
-ianam:	PEEKB	regHL
-	mov	dl, al
+ianam:	PEEKOPM
 	jmp	short iani
 
 ixra:	mov	ecx, eax
@@ -1084,7 +1253,7 @@ ixri:	mov	ax, [ebx].I80.regPSW
 	lahf
 IFDEF	I8XMIX
 	TSTZ85
-	jnz	short @f
+	jz	short @f
 ENDIF
 IFNDEF	NOI8085
 	and	ah, NOT VF
@@ -1095,8 +1264,7 @@ ENDIF
 ixraa:	mov	dl, [ebx].I80r.regA
 	jmp	short ixri
 
-ixram:	PEEKB	regHL
-	mov	dl, al
+ixram:	PEEKOPM
 	jmp	short ixri
 
 iora:	mov	ecx, eax
@@ -1108,7 +1276,7 @@ iori:	mov	ax, [ebx].I80.regPSW
 	lahf
 IFDEF	I8XMIX
 	TSTZ85
-	jnz	short @f
+	jz	short @f
 ENDIF
 IFNDEF	NOI8085
 	and	ah, NOT VF
@@ -1119,8 +1287,7 @@ ENDIF
 ioraa:	mov	dl, [ebx].I80r.regA
 	jmp	short iori
 
-ioram:	PEEKB	regHL
-	mov	dl, al
+ioram:	PEEKOPM
 	jmp	short iori
 
 icmp:	mov	ecx, eax
@@ -1139,8 +1306,7 @@ ENDIF
 icmpa:	mov	dl, [ebx].I80r.regA
 	jmp	short icpi
 
-icmpm:	PEEKB	regHL
-	mov	dl, al
+icmpm:	PEEKOPM
 	jmp	short icpi
 
 IFNDEF	NOI8080
@@ -1268,18 +1434,17 @@ ipush1:	movzx	edx, [ebx].I80.regSP
 	POKEW
 	xor	eax, eax
 	ret
-IFNDEF	NOI8080
 ippsw:	mov	ax, [ebx].I80.regPSW
-	and	ah, NOT (X5F OR X3F)
-	or	ah, VF
 	xchg	ah, al
-	jmp	short ipush1
+IFDEF	I8XMIX
+	TSTZ85
+	jnz	short ipush1
 ENDIF
-IFNDEF	NOI8085
-ipsw85:	mov	ax, [ebx].I80.regPSW
-	xchg	ah, al
-	jmp	short ipush1
+IFNDEF	NOI8080
+	and	al, NOT (X5F OR X3F)
+	or	al, VF
 ENDIF
+	jmp	short ipush1
 
 ipop:	PEEKW	regSP
 	mov	ecx, [esp][4]
