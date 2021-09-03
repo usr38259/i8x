@@ -1093,28 +1093,29 @@ ihlt:	mov	[ebx].I80.flag, -1
 	xor	eax, eax
 	ret
 
-PEEKOPM	macro
 IFDEF	FOLDOPM
 IFNDEF	MEMSUB
-	call	iopm
-ELSE
-.ERR	<FOLDOPM when MEMSUB>
+FOLDOPMP	equ 1
 ENDIF
+ENDIF
+
+PEEKOPM	macro
+IFDEF	FOLDOPMP
+	call	iopm
 ELSE
 	PEEKB	regHL
 	mov	dl, al
 ENDIF
 	endm
 
-IFDEF	FOLDOPM
-IFNDEF	MEMSUB
+IFDEF	FOLDOPMP
 iopm:	push	iopmr
 	PEEKB	regHL
 	mov	dl, al
+	add	esp, 4
 	ret
 iopmr:	add	esp, 4
 	ret
-ENDIF
 ENDIF
 
 iadd:	mov	ecx, eax
