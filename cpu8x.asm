@@ -1351,7 +1351,7 @@ ENDIF
 @@:	xor	eax, eax
 	ret
 IFNDEF	NOI8085
-ijccx:	shr	eax, 1
+ijccx:	shr	eax, 5
 	and	eax, 1
 	add	eax, 8
 	jmp	short ijcc1
