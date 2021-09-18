@@ -285,7 +285,7 @@ ENDIF
 	js	short rete
 	movzx	eax, al
 	inc	edx
-	cmp	byte ptr _i80ilen[eax], 1
+	cmp	byte ptr _i80ilen[eax], 2
 	push	eax
 	ja	short peek2
 	jb	short peekok
@@ -409,7 +409,7 @@ ENDIF
 	js	short rete
 	movzx	eax, al
 	inc	edx
-	cmp	byte ptr _i85ilen[eax], 1
+	cmp	byte ptr _i85ilen[eax], 2
 	push	eax
 	ja	short peek2
 	jb	short peekok
