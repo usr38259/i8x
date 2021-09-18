@@ -2,14 +2,14 @@
 .386
 .model flat
 
-;USEFETCHOP	equ -1
+;I8XFETCHOP	equ -1
 ;NOI8080	equ -1
 ;NOI8085	equ -1
-;I386ONLY	equ -1
-;MEMSUB		equ -1
-EXACTF		equ -1
-USEWRLOG	equ -1
-COUNTERS	equ -1
+;I8XI386ONLY	equ -1
+;I8XMEMSUB	equ -1
+I8XEXACTF	equ -1
+I8XWRLOG	equ -1
+I8XCOUNTERS	equ -1
 
 I80	struct
 	regBC	dw ?
@@ -34,14 +34,14 @@ I80	struct
 	pokew	dd ?
 	inb	dd ?
 	outb	dd ?
-IFDEF	USEFETCHOP
+IFDEF	I8XFETCHOP
 	fetchop	dd ?
 ENDIF
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	pokeaddr dw ?
 	pokeval	dw ?
 ENDIF
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 	itck	dd ?
 	icount	dd ?
 	ibytes	dd ?
@@ -210,22 +210,22 @@ ENDIF
 .code
 
 IFNDEF	NOI8080
-IFNDEF	FASTEXECALL
+IFNDEF	I8XFASTEXC
 _i80Execute@4	proc near
 ELSE
 @i80Execute@4	proc near
 ENDIF
 	push	ebx
-IFNDEF	FASTEXECALL
+IFNDEF	I8XFASTEXC
 	mov	ebx, dword ptr [esp+8]
 ELSE
 	mov	ebx, ecx
 ENDIF
 	movzx	edx, [ebx].I80.regPC
-IFDEF	USEFETCHOP
+IFDEF	I8XFETCHOP
 	cmp	[ebx].I80.fetchop, 0
 	jz	short nofetchop
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ENDIF
@@ -245,7 +245,7 @@ ENDIF
 	movzx	eax, byte ptr [ecx][edx]
 	movzx	edx, word ptr [ecx][edx+1]	; MRPROT
 peekok:
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 	movzx	ecx, byte ptr _i80ilen [eax]
 	add	[ebx].I80.ibytes, ecx
 	add	word ptr [ebx].I80.regPC, cx
@@ -255,25 +255,25 @@ IFDEF	COUNTERS
 ENDIF
 	push	eax
 	mov	ecx, [ebx].I80.iexe
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.mpoke, 0
 ENDIF
 	call	dword ptr [ecx][eax * 4]
 	add	esp, 4
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 	test	eax, eax
 	js	short ierr
 ENDIF
 rete:
 	pop	ebx
-IFNDEF	FASTEXECALL
+IFNDEF	I8XFASTEXC
 	ret	4
 ELSE
 	ret
 ENDIF
 memrngf:
 	push	edx
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -289,7 +289,7 @@ ENDIF
 	push	eax
 	ja	short peek2
 	jb	short peekok
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -302,7 +302,7 @@ ENDIF
 	pop	eax
 	jmp	short peekok
 peek2:
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -314,7 +314,7 @@ ENDIF
 	js	short rete
 	pop	eax
 	jmp	short peekok
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 ierr:	mov	ecx, dword ptr [esp-4]
 	movzx	edx, byte ptr _i80ilen [ecx]
 	sub	[ebx].I80.ibytes, edx
@@ -324,7 +324,7 @@ ierr:	mov	ecx, dword ptr [esp-4]
 	sub	[ebx].I80.itck, edx
 	jmp	short rete
 ENDIF
-IFNDEF	FASTEXECALL
+IFNDEF	I8XFASTEXC
 _i80Execute@4	endp
 ELSE
 @i80Execute@4	endp
@@ -332,29 +332,31 @@ ENDIF
 ENDIF
 
 IFNDEF	NOI8085
-IFNDEF	FASTEXECALL
+IFNDEF	I8XFASTEXC
 _i85Execute@4	proc near
 ELSE
 @i85Execute@4	proc near
 ENDIF
 	push	ebx
-IFNDEF	FASTEXECALL
+IFNDEF	I8XFASTEXC
 	mov	ebx, dword ptr [esp+8]
 ELSE
 	mov	ebx, ecx
 ENDIF
 	movzx	edx, [ebx].I80.regPC
-IFDEF	USEFETCHOP
+IFDEF	I8XFETCHOP
 	cmp	[ebx].I80.fetchop, 0
 	jz	short nofetchop
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ENDIF
 	call	[ecx].I80.fetchop
 	test	eax, eax
 	js	short rete
+	mov	edx, eax
 	movzx	eax, al
+	shr	edx, 8
 	movzx	edx, dx
 	jmp	short peekok
 nofetchop:
@@ -367,7 +369,7 @@ ENDIF
 	movzx	eax, byte ptr [ecx][edx]
 	movzx	edx, word ptr [ecx][edx+1]	; MRPROT
 peekok:
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 	movzx	ecx, byte ptr _i85ilen [eax]
 	add	[ebx].I80.ibytes, ecx
 	add	word ptr [ebx].I80.regPC, cx
@@ -377,25 +379,25 @@ IFDEF	COUNTERS
 ENDIF
 	push	eax
 	mov	ecx, [ebx].I80.iexe
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.mpoke, 0
 ENDIF
 	call	dword ptr [ecx][eax * 4]
 	add	esp, 4
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 	test	eax, eax
 	js	short ierr
 ENDIF
 rete:
 	pop	ebx
-IFNDEF	FASTEXECALL
+IFNDEF	I8XFASTEXC
 	ret	4
 ELSE
 	ret
 ENDIF
 memrngf:
 	push	edx
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -411,7 +413,7 @@ ENDIF
 	push	eax
 	ja	short peek2
 	jb	short peekok
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -424,7 +426,7 @@ ENDIF
 	pop	eax
 	jmp	short peekok
 peek2:
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -436,7 +438,7 @@ ENDIF
 	js	short rete
 	pop	eax
 	jmp	short peekok
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 ierr:	mov	ecx, dword ptr [esp-4]
 	movzx	edx, byte ptr _i85ilen [ecx]
 	sub	[ebx].I80.ibytes, edx
@@ -446,7 +448,7 @@ ierr:	mov	ecx, dword ptr [esp-4]
 	sub	[ebx].I80.itck, edx
 	jmp	short rete
 ENDIF
-IFNDEF	FASTEXECALL
+IFNDEF	I8XFASTEXC
 _i85Execute@4	endp
 ELSE
 @i85Execute@4	endp
@@ -469,10 +471,10 @@ JCC85ATCK	equ 3
 CCC85ATCK	equ 9
 RCC85ATCK	equ 6
 
-IFNDEF	MEMSUB
+IFNDEF	I8XMEMSUB
 
 peekbs	proc	near private
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -487,7 +489,7 @@ peekbsok:
 peekbs	endp
 
 peekws	proc	near private
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -502,12 +504,12 @@ peekwsok:
 peekws	endp
 
 pokebs	proc	near private
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.pokeaddr, dx
 	mov	[ebx].I80.pokeval, ax
 ENDIF
 	push	eax
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -519,19 +521,19 @@ ENDIF
 	add	esp, 4
 	ret
 pokebsok:
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.mpoke, 1
 ENDIF
 	ret
 pokebs	endp
 
 pokews	proc	near private
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.pokeaddr, dx
 	mov	[ebx].I80.pokeval, ax
 ENDIF
 	push	eax
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -543,7 +545,7 @@ ENDIF
 	add	esp, 4
 	ret
 pokewsok:
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.mpoke, 2
 ENDIF
 	ret
@@ -596,7 +598,7 @@ meme:	call	pokebs
 	jmp	short @f
 mrngok:	mov	ecx, [ebx].I80.mem
 	mov	byte ptr [ecx][edx], al
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.mpoke, 1
 	movzx	eax, al
 	mov	[ebx].I80.pokeaddr, dx
@@ -620,7 +622,7 @@ meme:	call	peekws
 	jmp	short @f
 mrngok:	mov	ecx, [ebx].I80.mem
 	mov	word ptr [ecx][edx], ax
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.mpoke, 2
 	mov	[ebx].I80.pokeaddr, dx
 	mov	[ebx].I80.pokeval, ax
@@ -636,7 +638,7 @@ peekbs	proc	near private
 	cmp	dx, [ebx].I80.mrhigh
 	jbe	short mrngok
 meme:
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -661,7 +663,7 @@ peekws	proc	near private
 	cmp	dx, ax
 	jbe	short mrngok
 meme:
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -679,7 +681,7 @@ peekwsok:
 peekws	endp
 
 pokebs	proc	near private
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.pokeaddr, dx
 	mov	[ebx].I80.pokeval, ax
 ENDIF
@@ -688,7 +690,7 @@ ENDIF
 	cmp	dx, [ebx].I80.mwhigh
 	jbe	short mrngok
 meme:	push	eax
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -702,14 +704,14 @@ ENDIF
 mrngok:	mov	ecx, [ebx].I80.mem
 	mov	byte ptr [ecx][edx], al
 pokebsok:
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.mpoke, 1
 ENDIF
 	ret
 pokebs	endp
 
 pokews	proc	near private
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.pokeaddr, dx
 	mov	[ebx].I80.pokeval, ax
 ENDIF
@@ -720,7 +722,7 @@ ENDIF
 	cmp	dx, cx
 	jbe	short mrngok
 meme:	push	eax
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -734,7 +736,7 @@ ENDIF
 mrngok:	mov	ecx, [ebx].I80.mem
 	mov	word ptr [ecx][edx], ax
 pokewsok:
-IFDEF	USEWRLOG
+IFDEF	I8XWRLOG
 	mov	[ebx].I80.mpoke, 2
 ENDIF
 	ret
@@ -942,7 +944,7 @@ irrc:	mov	ah, [ebx].I80r.regF
 	xor	eax, eax
 	ret
 
-IFDEF	I386ONLY
+IFDEF	I8XI386ONLY
 iral:	mov	ah, [ebx].I80r.regF
 	mov	ch, ah
 	and	ah, NOT CF
@@ -958,7 +960,7 @@ ENDIF
 	xor	eax, eax
 	ret
 
-IFDEF	I386ONLY
+IFDEF	I8XI386ONLY
 irar:	mov	ah, [ebx].I80r.regF
 	mov	ch, ah
 	and	ah, NOT CF
@@ -1002,7 +1004,7 @@ ENDIF
 IFNDEF	NOI8085
 	test	eax, VF
 	jz	short idaa1
-IFDEF	EXACTF
+IFDEF	I8XEXACTF
 	mov	cl, al
 ENDIF
 	xor	ah, AF
@@ -1010,7 +1012,7 @@ ENDIF
 	das
 	jmp	short idaa2
 ENDIF
-IFDEF	EXACTF
+IFDEF	I8XEXACTF
 idaa1:	mov	cl, al
 	sahf
 	daa
@@ -1094,7 +1096,7 @@ ihlt:	mov	[ebx].I80.flag, -1
 	ret
 
 IFDEF	FOLDOPM
-IFNDEF	MEMSUB
+IFNDEF	I8XMEMSUB
 FOLDOPMP	equ 1
 ENDIF
 ENDIF
@@ -1112,8 +1114,6 @@ IFDEF	FOLDOPMP
 iopm:	push	iopmr
 	PEEKB	regHL
 	mov	dl, al
-	add	esp, 4
-	ret
 iopmr:	add	esp, 4
 	ret
 ENDIF
@@ -1172,7 +1172,7 @@ isub:	mov	ecx, eax
 isui:	mov	ax, [ebx].I80.regPSW
 	sub	al, dl
 	lahf
-IFDEF	EXACTF
+IFDEF	I8XEXACTF
 	xor	ah, AF
 ENDIF
 	mov	[ebx].I80.regPSW, ax
@@ -1192,7 +1192,7 @@ isbi:	mov	ax, [ebx].I80.regPSW
 	sahf
 	sbb	al, dl
 	lahf
-IFDEF	EXACTF
+IFDEF	I8XEXACTF
 	xor	ah, AF
 ENDIF
 	mov	[ebx].I80.regPSW, ax
@@ -1210,13 +1210,13 @@ iana:	mov	ecx, eax
 	mov	dl, [ebx][ecx]
 iani:	mov	ax, [ebx].I80.regPSW
 IFNDEF	NOI8080
-IFDEF	EXACTF
+IFDEF	I8XEXACTF
 	mov	cl, al
 ENDIF
 ENDIF
 	and	al, dl
 	lahf
-IFDEF	EXACTF
+IFDEF	I8XEXACTF
 IFDEF	I8XMIX
 	TSTZ85
 	jnz	short @f
@@ -1298,7 +1298,7 @@ icmp:	mov	ecx, eax
 icpi:	mov	ax, [ebx].I80.regPSW
 	cmp	al, dl
 	lahf
-IFDEF	EXACTF
+IFDEF	I8XEXACTF
 	xor	ah, AF
 ENDIF
 	mov	[ebx].I80.regPSW, ax
@@ -1339,7 +1339,7 @@ ijcc1:	mov	cl, [ebx].I80r.regF
 	xor	cl, jccf [eax]
 	jz	short @f
 	mov	[ebx].I80.regPC, dx
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 IFNDEF	NOI8085
 IFDEF	I8XMIX
 	TSTZ85
@@ -1387,7 +1387,7 @@ ircc:	shr	eax, 3
 	PEEKW	regSP
 	mov	[ebx].I80.regPC, ax
 	add	[ebx].I80.regSP, 2
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 IFDEF	I8XMIX
 	TSTZ85
 	jnz	short ircc1
@@ -1420,7 +1420,7 @@ irstv:	test	[ebx].I80r.regF, VF
 	jz	short @b
 	mov	ecx, 8 * 8
 	movzx	edx, [ebx].I80.regSP
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 	add	[ebx].I80.itck, RCC85ATCK
 ENDIF
 	jmp	short irst1
@@ -1481,7 +1481,7 @@ iccc:	shr	eax, 3
 	mov	[ebx].I80.regPC, cx
 	mov	[ebx].I80.regSP, dx
 	POKEW
-IFDEF	COUNTERS
+IFDEF	I8XCOUNTERS
 IFDEF	I8XMIX
 	TSTZ85
 	jnz	short iccc1
@@ -1522,7 +1522,7 @@ idi:	and	[ebx].I80.regINTE, NOT 1
 iin:	cmp	[ebx].I80.inb, 0
 	jz	short noinb
 	movzx	edx, dl
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -1542,7 +1542,7 @@ iout:	cmp	[ebx].I80.outb, 0
 	movzx	edx, dl
 	movzx	eax, [ebx].I80r.regA
 	push	eax
-IFNDEF	FASTCALLBACK
+IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
 ELSE
@@ -1595,7 +1595,7 @@ idcx85:	shr	eax, 3
 idsub:	mov	ax, [ebx].I80.regBC
 	sub	[ebx].I80.regHL, ax
 	lahf
-IFDEF	EXACTF
+IFDEF	I8XEXACTF
 	xor	ah, AF
 	and	ah, NOT PF
 ENDIF
@@ -1659,7 +1659,7 @@ ilhlx:	PEEKW	regDE
 ENDIF
 
 IFNDEF	NOI8080
-IFNDEF	FASTEXECALL
+IFNDEF	I8XFASTEXC
 public _i80Execute@4
 ELSE
 public @i80Execute@4
@@ -1670,7 +1670,7 @@ public _i80idef
 ENDIF
 
 IFNDEF	NOI8085
-IFNDEF	FASTEXECALL
+IFNDEF	I8XFASTEXC
 public _i85Execute@4
 ELSE
 public @i85Execute@4
