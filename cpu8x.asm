@@ -285,7 +285,7 @@ ENDIF
 	js	short rete
 	movzx	eax, al
 	inc	edx
-	cmp	byte ptr _i80ilen[eax], 2
+	cmp	byte ptr _i80ilen[eax], 1
 	push	eax
 	ja	short peek2
 	jb	short peekok
@@ -409,7 +409,7 @@ ENDIF
 	js	short rete
 	movzx	eax, al
 	inc	edx
-	cmp	byte ptr _i85ilen[eax], 2
+	cmp	byte ptr _i85ilen[eax], 1
 	push	eax
 	ja	short peek2
 	jb	short peekok
@@ -1600,6 +1600,7 @@ IFDEF	I8XEXACTF
 	and	ah, NOT PF
 ENDIF
 	mov	[ebx].I80r.regF, ah
+	xor	eax, eax
 	ret
 
 iarsh:	mov	ah, [ebx].I80r.regF
@@ -1608,6 +1609,7 @@ iarsh:	mov	ah, [ebx].I80r.regF
 	jnc	short @f
 	or	ah, CF
 @@:	mov	[ebx].I80r.regF, ah
+	xor	eax, eax
 	ret
 
 irlde:	mov	ch, [ebx].I80r.regF
@@ -1623,14 +1625,17 @@ irlde:	mov	ch, [ebx].I80r.regF
 	or	ch, cl
 	mov	[ebx].I80.regDE, dx
 	mov	[ebx].I80r.regF, ch
+	xor	eax, eax
 	ret
 
 irim:	mov	al, [ebx].I80.imode		; not implemented
 	mov	[ebx].I80r.regA, al
+	xor	eax, eax
 	ret
 
 isim:	mov	al, [ebx].I80r.regA		; not implemented
 	mov	[ebx].I80.imode, al
+	xor	eax, eax
 	ret
 
 ildeh:	movzx	ecx, [ebx].I80.regHL
@@ -1651,10 +1656,12 @@ ildes:	movzx	ecx, [ebx].I80.regSP
 
 ishlx:	mov	ax, [ebx].I80.regHL
 	POKEW	regDE
+	xor	eax, eax
 	ret
 
 ilhlx:	PEEKW	regDE
 	mov	[ebx].I80.regHL, ax
+	xor	eax, eax
 	ret
 ENDIF
 
