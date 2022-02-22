@@ -264,8 +264,7 @@ IFDEF	I8XCOUNTERS
 	test	eax, eax
 	js	short ierr
 ENDIF
-rete:
-	pop	ebx
+rete:	pop	ebx
 IFNDEF	I8XFASTEXC
 	ret	4
 ELSE
@@ -388,8 +387,7 @@ IFDEF	I8XCOUNTERS
 	test	eax, eax
 	js	short ierr
 ENDIF
-rete:
-	pop	ebx
+rete:	pop	ebx
 IFNDEF	I8XFASTEXC
 	ret	4
 ELSE
@@ -782,37 +780,37 @@ TSTZ85	macro
 	test	[ebx].I80.regINTE, 2
 	endm
 
+RET0	macro
+	xor	eax, eax
+	ret
+	endm
+
 ilxi:	shr	eax, 3
 	and	eax, 110b
 	mov	word ptr [ebx][eax], dx
-	xor	eax, eax
-	ret
+	RET0
 
 istax:	shr	eax, 3
 	movzx	edx, word ptr [ebx][eax]
 	mov	al, byte ptr [ebx].I80r.regA
 	POKEB
-	xor	eax, eax
-	ret
+	RET0
 
 ildax:	shr	eax, 3
 	and	eax, 110b
 	movzx	edx, word ptr [ebx][eax]
 	PEEKB
 	mov	byte ptr [ebx].I80r.regA, al
-	xor	eax, eax
-	ret
+	RET0
 
 iinx:	shr	eax, 3
 	inc	word ptr [ebx][eax]
-	xor	eax, eax
-	ret
+	RET0
 
 idcx:	shr	eax, 3
 	and	eax, 110b
 	dec	word ptr [ebx][eax]
-	xor	eax, eax
-	ret
+	RET0
 
 iinr:	shr	eax, 3
 	and	eax, 111b
@@ -835,8 +833,8 @@ ENDIF
 ENDIF
 @@:	or	ah, dh
 	mov	[ebx].I80r.regF, ah
-	xor	eax, eax
-	ret
+	RET0
+
 iinra:	inc	byte ptr [ebx].I80r.regA
 	jmp	short iinr1
 
@@ -860,8 +858,7 @@ ENDIF
 @@:	or	ah, dh
 	mov	[ebx].I80r.regF, ah
 	POKEB	regHL
-	xor	eax, eax
-	ret
+	RET0
 
 idcr:	shr	eax, 3
 	and	eax, 111b
@@ -874,8 +871,8 @@ idcr:	shr	eax, 3
 	xor	ah, AF
 	or	ah, dh
 	mov	[ebx].I80r.regF, ah
-	xor	eax, eax
-	ret
+	RET0
+
 idcra:	dec	byte ptr [ebx].I80r.regA
 	jmp	short @b
 
@@ -889,24 +886,20 @@ idcrm:	PEEKB	regHL
 	or	ah, dh
 	mov	[ebx].I80r.regF, ah
 	POKEB	regHL
-	xor	eax, eax
-	ret
+	RET0
 
 imvi:	shr	eax, 3
 	and	eax, 111b
 	xor	eax, 1
 	mov	byte ptr [ebx][eax], dl
-	xor	eax, eax
-	ret
+	RET0
 
 imvia:	mov	byte ptr [ebx].I80r.regA, dl
-	xor	eax, eax
-	ret
+	RET0
 
 imvim:	mov	al, dl
 	POKEB	regHL
-	xor	eax, eax
-	ret
+	RET0
 
 idad:	shr	eax, 3
 	and	eax, 110b
@@ -917,14 +910,12 @@ idad:	shr	eax, 3
 	jnc	short @f
 	or	ah, CF
 @@:	mov	[ebx].I80r.regF, ah
-	xor	eax, eax
-	ret
+	RET0
 
 IFNDEF	NOI8080
 i?nop:	mov	word ptr [ebx].I80.flag, 1
 ENDIF
-inop:	xor	eax, eax
-	ret
+inop:	RET0
 
 irlc:	mov	ah, [ebx].I80r.regF
 	and	ah, NOT CF
@@ -932,8 +923,7 @@ irlc:	mov	ah, [ebx].I80r.regF
 	jnc	short @f
 	or	ah, CF
 @@:	mov	[ebx].I80r.regF, ah
-	xor	eax, eax
-	ret
+	RET0
 
 irrc:	mov	ah, [ebx].I80r.regF
 	and	ah, NOT CF
@@ -941,8 +931,7 @@ irrc:	mov	ah, [ebx].I80r.regF
 	jnc	short @f
 	or	ah, CF
 @@:	mov	[ebx].I80r.regF, ah
-	xor	eax, eax
-	ret
+	RET0
 
 IFDEF	I8XI386ONLY
 iral:	mov	ah, [ebx].I80r.regF
@@ -957,8 +946,7 @@ ENDIF
 	jnc	short @f
 	or	ah, CF
 @@:	mov	[ebx].I80r.regF, ah
-	xor	eax, eax
-	ret
+	RET0
 
 IFDEF	I8XI386ONLY
 irar:	mov	ah, [ebx].I80r.regF
@@ -973,28 +961,23 @@ ENDIF
 	jnc	short @f
 	or	ah, CF
 @@:	mov	[ebx].I80r.regF, ah
-	xor	eax, eax
-	ret
+	RET0
 
 ishld:	mov	ax, [ebx].I80.regHL
 	POKEW
-	xor	eax, eax
-	ret
+	RET0
 
 ilhld:	PEEKW
 	mov	[ebx].I80.regHL, ax
-	xor	eax, eax
-	ret
+	RET0
 
 ista:	mov	al, [ebx].I80r.regA
 	POKEB
-	xor	eax, eax
-	ret
+	RET0
 
 ilda:	PEEKB
 	mov	[ebx].I80r.regA, al
-	xor	eax, eax
-	ret
+	RET0
 
 idaa:	mov	ax, [ebx].I80.regPSW
 IFDEF	I8XMIX
@@ -1030,8 +1013,7 @@ idaa1:	sahf
 idaa2:	lahf
 ENDIF
 	mov	[ebx].I80.regPSW, ax
-	xor	eax, eax
-	ret
+	RET0
 
 icma:	not	[ebx].I80r.regA
 IFDEF	I8XMIX
@@ -1041,16 +1023,13 @@ ENDIF
 IFNDEF	NOI8085
 	or	[ebx].I80r.regF, AF OR VF
 ENDIF
-@@:	xor	eax, eax
-	ret
+@@:	RET0
 
 istc:	or	[ebx].I80r.regF, CF
-	xor	eax, eax
-	ret
+	RET0
 
 icmc:	xor	[ebx].I80r.regF, CF
-	xor	eax, eax
-	ret
+	RET0
 
 imov:	mov	ecx, eax
 	and	eax, 111b
@@ -1063,8 +1042,7 @@ imov1:	shr	ecx, 3
 	add	ecx, 2
 @@:	mov	al, [ebx][eax]
 	mov	[ebx][ecx], al
-imov??:	xor	eax, eax
-	ret
+imov??:	RET0
 imova:	mov	ecx, eax
 	mov	eax, I80r.regA
 	jmp	short imov1
@@ -1078,22 +1056,19 @@ imovrm:	PEEKB	regHL
 	jne	short @f
 	add	ecx, 2
 @@:	mov	[ebx][ecx], al
-	xor	eax, eax
-	ret
+	RET0
 
 imovmr:	and	eax, 111b
 	xor	eax, 1
 imovmr1:
 	mov	al, [ebx][eax]
 	POKEB	regHL
-	xor	eax, eax
-	ret
+	RET0
 imovma:	mov	eax, I80r.regA
 	jmp	short imovmr1
 
 ihlt:	mov	[ebx].I80.flag, -1
-	xor	eax, eax
-	ret
+	RET0
 
 IFDEF	FOLDOPM
 IFNDEF	I8XMEMSUB
@@ -1133,11 +1108,9 @@ IFNDEF	NOI8085
 	and	ah, NOT VF
 ENDIF
 @@:	mov	[ebx].I80.regPSW, ax
-	xor	eax, eax
-	ret
+	RET0
 iadda:	mov	dl, [ebx].I80r.regA
 	jmp	short iadi
-
 iaddm:	PEEKOPM
 	jmp	short iadi
 
@@ -1157,11 +1130,9 @@ IFNDEF	NOI8085
 	and	ah, NOT VF
 ENDIF
 @@:	mov	[ebx].I80.regPSW, ax
-	xor	eax, eax
-	ret
+	RET0
 iadca:	mov	dl, [ebx].I80r.regA
 	jmp	short iaci
-
 iadcm:	PEEKOPM
 	jmp	short iaci
 
@@ -1176,11 +1147,9 @@ IFDEF	I8XEXACTF
 	xor	ah, AF
 ENDIF
 	mov	[ebx].I80.regPSW, ax
-	xor	eax, eax
-	ret
+	RET0
 isuba:	mov	dl, [ebx].I80r.regA
 	jmp	short isui
-
 isubm:	PEEKOPM
 	jmp	short isui
 
@@ -1196,11 +1165,9 @@ IFDEF	I8XEXACTF
 	xor	ah, AF
 ENDIF
 	mov	[ebx].I80.regPSW, ax
-	xor	eax, eax
-	ret
+	RET0
 isbba:	mov	dl, [ebx].I80r.regA
 	jmp	short isbi
-
 isbbm:	PEEKOPM
 	jmp	short isbi
 
@@ -1237,11 +1204,9 @@ iana1:
 ENDIF
 ENDIF
 	mov	[ebx].I80.regPSW, ax
-	xor	eax, eax
-	ret
+	RET0
 ianaa:	mov	dl, [ebx].I80r.regA
 	jmp	short iani
-
 ianam:	PEEKOPM
 	jmp	short iani
 
@@ -1260,11 +1225,9 @@ IFNDEF	NOI8085
 	and	ah, NOT VF
 ENDIF
 @@:	mov	[ebx].I80.regPSW, ax
-	xor	eax, eax
-	ret
+	RET0
 ixraa:	mov	dl, [ebx].I80r.regA
 	jmp	short ixri
-
 ixram:	PEEKOPM
 	jmp	short ixri
 
@@ -1283,11 +1246,9 @@ IFNDEF	NOI8085
 	and	ah, NOT VF
 ENDIF
 @@:	mov	[ebx].I80.regPSW, ax
-	xor	eax, eax
-	ret
+	RET0
 ioraa:	mov	dl, [ebx].I80r.regA
 	jmp	short iori
-
 ioram:	PEEKOPM
 	jmp	short iori
 
@@ -1302,11 +1263,9 @@ IFDEF	I8XEXACTF
 	xor	ah, AF
 ENDIF
 	mov	[ebx].I80.regPSW, ax
-	xor	eax, eax
-	ret
+	RET0
 icmpa:	mov	dl, [ebx].I80r.regA
 	jmp	short icpi
-
 icmpm:	PEEKOPM
 	jmp	short icpi
 
@@ -1314,8 +1273,7 @@ IFNDEF	NOI8080
 i?jmp:	mov	[ebx].I80.flag, 1
 ENDIF
 ijmp:	mov	[ebx].I80.regPC, dx
-	xor	eax, eax
-	ret
+	RET0
 
 .const
 
@@ -1348,8 +1306,7 @@ ENDIF
 	add	[ebx].I80.itck, JCC85ATCK
 ENDIF
 ENDIF
-@@:	xor	eax, eax
-	ret
+@@:	RET0
 IFNDEF	NOI8085
 ijccx:	shr	eax, 5
 	and	eax, 1
@@ -1366,8 +1323,7 @@ icall:	movzx	eax, [ebx].I80.regPC
 	sub	edx, 2
 	mov	[ebx].I80.regSP, dx
 	POKEW
-	xor	eax, eax
-	ret
+	RET0
 
 IFNDEF	NOI8080
 i?ret:	mov	[ebx].I80.flag, 1
@@ -1375,8 +1331,7 @@ ENDIF
 iiret:	PEEKW	regSP
 	add	[ebx].I80.regSP, 2
 	mov	[ebx].I80.regPC, ax
-	xor	eax, eax
-	ret
+	RET0
 
 ircc:	shr	eax, 3
 	and	eax, 111b
@@ -1402,8 +1357,7 @@ IFNDEF	NOI8085
 ircc1:	add	[ebx].I80.itck, RCC85ATCK
 ENDIF
 ENDIF
-noret:	xor	eax, eax
-	ret
+noret:	RET0
 
 irst:	mov	ecx, eax
 	movzx	edx, [ebx].I80.regSP
@@ -1413,8 +1367,7 @@ irst1:	sub	edx, 2
 	mov	[ebx].I80.regPC, cx
 	mov	[ebx].I80.regSP, dx
 	POKEW
-@@:	xor	eax, eax
-	ret
+@@:	RET0
 IFNDEF	NOI8085
 irstv:	test	[ebx].I80r.regF, VF
 	jz	short @b
@@ -1433,8 +1386,7 @@ ipush1:	movzx	edx, [ebx].I80.regSP
 	sub	edx, 2
 	mov	[ebx].I80.regSP, dx
 	POKEW
-	xor	eax, eax
-	ret
+	RET0
 ippsw:	mov	ax, [ebx].I80.regPSW
 	xchg	ah, al
 IFDEF	I8XMIX
@@ -1465,8 +1417,7 @@ ENDIF
 @@:	add	ecx, 2
 ipop1:	add	[ebx].I80.regSP, 2
 	mov	[ebx][ecx], ax
-	xor	eax, eax
-	ret
+	RET0
 
 iccc:	shr	eax, 3
 	and	eax, 111b
@@ -1496,28 +1447,23 @@ IFNDEF	NOI8085
 iccc1:	add	[ebx].I80.itck, CCC85ATCK
 ENDIF
 ENDIF
-nocall:	xor	eax, eax
-	ret
+nocall:	RET0
 
 ixchg:	mov	ax, [ebx].I80.regDE
 	xchg	ax, [ebx].I80.regHL
 	mov	[ebx].I80.regDE, ax
-	xor	eax, eax
-	ret
+	RET0
 
 ixthl:	PEEKW	regSP
 	xchg	ax, [ebx].I80.regHL
 	POKEW	regSP
-	xor	eax, eax
-	ret
+	RET0
 
 iei:	or	[ebx].I80.regINTE, 1
-	xor	eax, eax
-	ret
+	RET0
 
 idi:	and	[ebx].I80.regINTE, NOT 1
-	xor	eax, eax
-	ret
+	RET0
 
 iin:	cmp	[ebx].I80.inb, 0
 	jz	short noinb
@@ -1532,10 +1478,8 @@ ENDIF
 	test	eax, eax
 	js	short errinb
 	mov	[ebx].I80r.regA, al
-noinb:
-	xor	eax, eax
-errinb:
-	ret
+noinb:	xor	eax, eax
+errinb:	ret
 
 iout:	cmp	[ebx].I80.outb, 0
 	jz	short nooutb
@@ -1551,20 +1495,16 @@ ENDIF
 	call	dword ptr [ebx].I80.outb
 	test	eax, eax
 	js	short erroutb
-nooutb:
-	xor	eax, eax
-erroutb:
-	ret
+nooutb:	xor	eax, eax
+erroutb:ret
 
 ipchl:	mov	ax, [ebx].I80.regHL
 	mov	[ebx].I80.regPC, ax
-	xor	eax, eax
-	ret
+	RET0
 
 isphl:	mov	ax, [ebx].I80.regHL
 	mov	[ebx].I80.regSP, ax
-	xor	eax, eax
-	ret
+	RET0
 
 IFNDEF	NOI8085
 iinx85:	shr	eax, 3
@@ -1575,8 +1515,7 @@ iinx85:	shr	eax, 3
 	jnz	short @f
 	or	cl, X5F
 @@:	mov	[ebx].I80r.regF, cl
-	xor	eax, eax
-	ret
+	RET0
 
 idcx85:	shr	eax, 3
 	and	eax, 110b
@@ -1589,8 +1528,7 @@ idcx85:	shr	eax, 3
 	or	cl, X5F
 @@:	mov	word ptr [ebx][eax], dx
 	mov	[ebx].I80r.regF, cl
-	xor	eax, eax
-	ret
+	RET0
 
 idsub:	mov	ax, [ebx].I80.regBC
 	sub	[ebx].I80.regHL, ax
@@ -1600,8 +1538,7 @@ IFDEF	I8XEXACTF
 	and	ah, NOT PF
 ENDIF
 	mov	[ebx].I80r.regF, ah
-	xor	eax, eax
-	ret
+	RET0
 
 iarsh:	mov	ah, [ebx].I80r.regF
 	and	ah, NOT CF
@@ -1609,8 +1546,7 @@ iarsh:	mov	ah, [ebx].I80r.regF
 	jnc	short @f
 	or	ah, CF
 @@:	mov	[ebx].I80r.regF, ah
-	xor	eax, eax
-	ret
+	RET0
 
 irlde:	mov	ch, [ebx].I80r.regF
 	mov	dx, [ebx].I80.regDE
@@ -1625,44 +1561,37 @@ irlde:	mov	ch, [ebx].I80r.regF
 	or	ch, cl
 	mov	[ebx].I80.regDE, dx
 	mov	[ebx].I80r.regF, ch
-	xor	eax, eax
-	ret
+	RET0
 
 irim:	mov	al, [ebx].I80.imode		; not implemented
 	mov	[ebx].I80r.regA, al
-	xor	eax, eax
-	ret
+	RET0
 
 isim:	mov	al, [ebx].I80r.regA		; not implemented
 	mov	[ebx].I80.imode, al
-	xor	eax, eax
-	ret
+	RET0
 
 ildeh:	movzx	ecx, [ebx].I80.regHL
 	movzx	edx, dl
 	add	edx, ecx
 	PEEKW
 	mov	[ebx].I80.regDE, ax
-	xor	eax, eax
-	ret
+	RET0
 
 ildes:	movzx	ecx, [ebx].I80.regSP
 	movzx	edx, dl
 	add	edx, ecx
 	PEEKW
 	mov	[ebx].I80.regDE, ax
-	xor	eax, eax
-	ret
+	RET0
 
 ishlx:	mov	ax, [ebx].I80.regHL
 	POKEW	regDE
-	xor	eax, eax
-	ret
+	RET0
 
 ilhlx:	PEEKW	regDE
 	mov	[ebx].I80.regHL, ax
-	xor	eax, eax
-	ret
+	RET0
 ENDIF
 
 IFNDEF	NOI8080
