@@ -4,4 +4,5 @@ Compile:<br>
 `ml /c /coff cpu8x.asm`<br>
 `cl /Ox i80test.c i8x.c cpu8x.obj`<br>
 or<br>
-`nmake`
+`nmake`<br>
+`nmake test`
