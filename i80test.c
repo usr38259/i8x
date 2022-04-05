@@ -1,5 +1,7 @@
 
 #include <stdio.h>
+#include <conio.h>
+#include <io.h>
 #include "i8x.h"
 
 #define TEXT_BIN "8080exer.com"
