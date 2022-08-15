@@ -2,14 +2,16 @@
 .386
 .model flat
 
+;I8XFASTCB	equ -1
+;I8XFASTEXC	equ -1
 ;I8XFETCHOP	equ -1
 ;NOI8080	equ -1
 ;NOI8085	equ -1
 ;I8XI386ONLY	equ -1
 ;I8XMEMSUB	equ -1
-I8XEXACTF	equ -1
-I8XWRLOG	equ -1
-I8XCOUNTERS	equ -1
+;I8XEXACTF	equ -1
+;I8XWRLOG	equ -1
+;I8XCOUNTERS	equ -1
 
 I80	struct
 	regBC	dw ?
@@ -245,10 +247,10 @@ ENDIF
 	movzx	eax, byte ptr [ecx][edx]
 	movzx	edx, word ptr [ecx][edx+1]	; MRPROT
 peekok:
-IFDEF	I8XCOUNTERS
 	movzx	ecx, byte ptr _i80ilen [eax]
-	add	[ebx].I80.ibytes, ecx
 	add	word ptr [ebx].I80.regPC, cx
+IFDEF	I8XCOUNTERS
+	add	[ebx].I80.ibytes, ecx
 	movzx	ecx, byte ptr _i80itck [eax]
 	inc	[ebx].I80.icount
 	add	[ebx].I80.itck, ecx
@@ -368,10 +370,10 @@ ENDIF
 	movzx	eax, byte ptr [ecx][edx]
 	movzx	edx, word ptr [ecx][edx+1]	; MRPROT
 peekok:
-IFDEF	I8XCOUNTERS
 	movzx	ecx, byte ptr _i85ilen [eax]
-	add	[ebx].I80.ibytes, ecx
 	add	word ptr [ebx].I80.regPC, cx
+IFDEF	I8XCOUNTERS
+	add	[ebx].I80.ibytes, ecx
 	movzx	ecx, byte ptr _i85itck [eax]
 	inc	[ebx].I80.icount
 	add	[ebx].I80.itck, ecx
@@ -1093,10 +1095,9 @@ iopmr:	add	esp, 4
 	ret
 ENDIF
 
-iadd:	mov	ecx, eax
-	and	ecx, 111b
-	xor	ecx, 1
-	mov	dl, [ebx][ecx]
+iadd:	and	eax, 111b
+	xor	eax, 1
+	mov	dl, [ebx][eax]
 iadi:	mov	ax, [ebx].I80.regPSW
 	add	al, dl
 	lahf
@@ -1114,10 +1115,9 @@ iadda:	mov	dl, [ebx].I80r.regA
 iaddm:	PEEKOPM
 	jmp	short iadi
 
-iadc:	mov	ecx, eax
-	and	ecx, 111b
-	xor	ecx, 1
-	mov	dl, [ebx][ecx]
+iadc:	and	eax, 111b
+	xor	eax, 1
+	mov	dl, [ebx][eax]
 iaci:	mov	ax, [ebx].I80.regPSW
 	sahf
 	adc	al, dl
@@ -1136,10 +1136,9 @@ iadca:	mov	dl, [ebx].I80r.regA
 iadcm:	PEEKOPM
 	jmp	short iaci
 
-isub:	mov	ecx, eax
-	and	ecx, 111b
-	xor	ecx, 1
-	mov	dl, [ebx][ecx]
+isub:	and	eax, 111b
+	xor	eax, 1
+	mov	dl, [ebx][eax]
 isui:	mov	ax, [ebx].I80.regPSW
 	sub	al, dl
 	lahf
@@ -1153,10 +1152,9 @@ isuba:	mov	dl, [ebx].I80r.regA
 isubm:	PEEKOPM
 	jmp	short isui
 
-isbb:	mov	ecx, eax
-	and	ecx, 111b
-	xor	ecx, 1
-	mov	dl, [ebx][ecx]
+isbb:	and	eax, 111b
+	xor	eax, 1
+	mov	dl, [ebx][eax]
 isbi:	mov	ax, [ebx].I80.regPSW
 	sahf
 	sbb	al, dl
@@ -1171,10 +1169,9 @@ isbba:	mov	dl, [ebx].I80r.regA
 isbbm:	PEEKOPM
 	jmp	short isbi
 
-iana:	mov	ecx, eax
-	and	ecx, 111b
-	xor	ecx, 1
-	mov	dl, [ebx][ecx]
+iana:	and	eax, 111b
+	xor	eax, 1
+	mov	dl, [ebx][eax]
 iani:	mov	ax, [ebx].I80.regPSW
 IFNDEF	NOI8080
 IFDEF	I8XEXACTF
@@ -1210,10 +1207,9 @@ ianaa:	mov	dl, [ebx].I80r.regA
 ianam:	PEEKOPM
 	jmp	short iani
 
-ixra:	mov	ecx, eax
-	and	ecx, 111b
-	xor	ecx, 1
-	mov	dl, [ebx][ecx]
+ixra:	and	eax, 111b
+	xor	eax, 1
+	mov	dl, [ebx][eax]
 ixri:	mov	ax, [ebx].I80.regPSW
 	xor	al, dl
 	lahf
@@ -1231,10 +1227,9 @@ ixraa:	mov	dl, [ebx].I80r.regA
 ixram:	PEEKOPM
 	jmp	short ixri
 
-iora:	mov	ecx, eax
-	and	ecx, 111b
-	xor	ecx, 1
-	mov	dl, [ebx][ecx]
+iora:	and	eax, 111b
+	xor	eax, 1
+	mov	dl, [ebx][eax]
 iori:	mov	ax, [ebx].I80.regPSW
 	or	al, dl
 	lahf
@@ -1252,10 +1247,9 @@ ioraa:	mov	dl, [ebx].I80r.regA
 ioram:	PEEKOPM
 	jmp	short iori
 
-icmp:	mov	ecx, eax
-	and	ecx, 111b
-	xor	ecx, 1
-	mov	dl, [ebx][ecx]
+icmp:	and	eax, 111b
+	xor	eax, 1
+	mov	dl, [ebx][eax]
 icpi:	mov	ax, [ebx].I80.regPSW
 	cmp	al, dl
 	lahf
