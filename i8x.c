@@ -2,16 +2,13 @@
 #include <memory.h>
 #include "i8x.h"
 
-int I8XCALLBACK mdummy1 (I8X *i80, int addr);
-int I8XCALLBACK mdummy2 (I8X *i80, int addr, int val);
+static int I8XCALLBACK mdummy1 (I8X *i80, int addr);
+static int I8XCALLBACK mdummy2 (I8X *i80, int addr, int val);
 
-void i80Init (I8X *i80)
+static void i8xInit (I8X *i80)
 {
 	memset (i80, 0, sizeof (I8X));
-
 	i80->psw	= 0x0200;
-//	i80->inte	= 0;
-	i80->iexe	= i80idef;
 	i80->mrlow	= -1;
 	i80->mwlow	= -1;
 	i80->peekb	= mdummy1;
@@ -20,13 +17,21 @@ void i80Init (I8X *i80)
 	i80->pokew	= mdummy2;
 	i80->inb	= mdummy1;
 	i80->outb	= mdummy2;
-	i80->flag = 0;
 }
+
+#ifndef NOI8080
+void i80Init (I8X *i80)
+{
+	i8xInit (i80);
+	i80->iexe = i80idef;
+}
+#endif
 
 #ifndef NOI8085
 void i85Init (I8X *i85)
 {
 	i80Init (i85);
+	i85->iexe = i85idef;
 	i85->inte |= 2;
 }
 #endif
@@ -39,17 +44,17 @@ void i8xSet85 (I8X *i8x, int f) {
 }
 #endif
 
-int I8XCALLBACK mdummy1 (I8X *i80, int addr)
+static int I8XCALLBACK mdummy1 (I8X *i80, int addr)
 {
 	return 0;
 }
 
-int I8XCALLBACK mdummy2 (I8X *i80, int addr, int val)
+static int I8XCALLBACK mdummy2 (I8X *i80, int addr, int val)
 {
 	return 0;
 }
 
-char i8xmnemo[] =
+static const char i8xmnemo[] =
 	"NOP???LXISTALDASTAXLDAXSHLDLHLDINXDCXINRDCRDADMVIR"
 	"LCRRCRALRARDAACMASTCCMCMOVHLTADDADCSUBSBBANAXRAORA"
 	"CMPPUSHPOPJMPCALLRETXTHLXCHGDIEIINOUTADIACISUISBIA"
@@ -66,11 +71,13 @@ char i8xmnemo[] =
 #define ILEN(ind) (((i8xmdescr [ind] >> 9) & 0x3) + 1)
 #define IFMT(ind) ((i8xmdescr [ind] >> 11) & 0xF)
 #define	I85(ind) (i8xmdescr [ind] & 0x8000)
-#ifndef	NOI8085
+#ifndef NOI8085
 #define J(off, len, fmt) (I(off,len,fmt) | 0x8000)
+#else
+#define J(off, len, fmt) I(3,3,0)
 #endif
 
-unsigned short i8xmdescr [256] =
+static const unsigned short i8xmdescr [256] =
 {
 	I(  0,3,0), I(  6,3,9), I( 15,4,3), I( 31,3,3), I( 37,3,4), I( 40,3,4), I( 46,3,10), I( 49,3,0),
 	J(267,4,0), I( 43,3,3), I( 19,4,3), I( 34,3,3), I( 37,3,4), I( 40,3,4), I( 46,3,10), I( 52,3,0),
@@ -127,20 +134,16 @@ int i8xDasm (char *instr, const unsigned char op[3], int f)
 	ioff = IOFF (op[0]);
 #ifndef	NOI8085
 	if (I85(op [0]) && f & I8XDASM_85 == 0)
-#else
-	if (I85(op [0]))
-#endif
 		ioff = IUNKN, ilen = 3, e = 1;
-	for ( i = 0; i < ilen; i++)
-		instr [i] = i8xmnemo [ioff + i];
+#endif
+	for (i = 0; i < ilen; i++) instr [i] = i8xmnemo [ioff + i];
 	if (e) goto ext;
 	ip = & instr [ilen];
 
 	ifmt = IFMT (op[0]);
 	if (ifmt != 0) {
-		if ( n < 0 )
-			for ( i = 0, n = -n; i < n; i++, ip++)
-				*ip = '\t';
+		if ( n < 0 ) for ( i = 0, n = -n; i < n; i++, ip++)
+			*ip = '\t';
 		else {
 			if ( n == 0 ) n = 5;
 			i = n - ilen;
@@ -149,8 +152,7 @@ int i8xDasm (char *instr, const unsigned char op[3], int f)
 		}
 	}
 
-	switch (ifmt)
-	{
+	switch (ifmt) {
 	case 0: break;
 	case 1:	ip [0] = i8xmnemo [HXOFS + (( op[1] >> 4 ) & 0xF)];
 		ip [1] = i8xmnemo [HXOFS + (  op[1] & 0xF)];
@@ -199,13 +201,10 @@ int i8xDasm (char *instr, const unsigned char op[3], int f)
 		*ip++ = i8xmnemo [HXOFS + (  op[1] & 0xF)];
 		break;
 #ifndef NOI8085
-	case 11: *ip++ = 'V';
-		break;
+	case 11: *ip++ = 'V'; break;
 #endif
-	default:
-		*ip++ = '?';
+	default: *ip++ = '?';
 	}
-
 ext:	*ip = '\0';
 	return i80ilen [ op[0] ];
 }
