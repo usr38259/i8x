@@ -1,8 +1,8 @@
 # i8x
-i80/85 microprocessor emulation<br>
-Compile:<br>
-`ml /c /coff cpu8x.asm`<br>
-`cl /Ox i80test.c i8x.c cpu8x.obj`<br>
-or<br>
-`nmake`<br>
+i80/85 microprocessor emulation  
+Compile:  
+`ml /c /coff /DI8XEXACTF cpu8x.asm`  
+`cl /Ox i80test.c i8x.c cpu8x.obj`  
+or  
+`nmake`  
 `nmake test`
