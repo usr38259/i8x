@@ -289,14 +289,18 @@ ELSE
 ENDIF
 	movzx	edx, [ebx].I80.regPC
 IFDEF	I8XFETCHOP
-	mov	ecx, [ebx].I80.fetchop
-	test	ecx, ecx
+	mov	eax, [ebx].I80.fetchop
+	test	eax, eax
 	jz	short nofetchop
 IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
+ELSE
+IFNDEF	I8XFASTEXC
+	mov	ecx, ebx
 ENDIF
-	call	ecx
+ENDIF
+	call	eax
 IFDEF	I8XCCB
 	add	esp, 8
 ENDIF
@@ -438,14 +442,18 @@ ELSE
 ENDIF
 	movzx	edx, [ebx].I80.regPC
 IFDEF	I8XFETCHOP
-	mov	ecx, [ebx].I80.regPC
-	test	ecx, ecx
+	mov	eax, [ebx].I80.regPC
+	test	eax, eax
 	jz	short nofetchop
 IFNDEF	I8XFASTCB
 	push	edx
 	push	ebx
+ELSE
+IFNDEF	I8XFASTEXC
+	mov	ecx, ebx
 ENDIF
-	call	ecx
+ENDIF
+	call	eax
 IFDEF	I8XCCB
 	add	esp, 8
 ENDIF
@@ -1802,8 +1810,9 @@ idi:	and	[ebx].I80.regINTE, NOT 1
 	xor	eax, eax
 	ret
 
-iin:	cmp	[ebx].I80.inb, 0
-	jz	short noinb
+iin:	mov	eax, [ebx].I80.inb
+	test	eax, eax
+	jz	short errinb
 	movzx	edx, dl
 IFNDEF	I8XFASTCB
 	push	edx
@@ -1811,18 +1820,19 @@ IFNDEF	I8XFASTCB
 ELSE
 	mov	ecx, ebx
 ENDIF
-	call	dword ptr [ebx].I80.inb
+	call	eax
 IFDEF	I8XCCB
 	add	esp, 8
 ENDIF
 	test	eax, eax
 	js	short errinb
 	mov	[ebx].I80r.regA, al
-noinb:	xor	eax, eax
+	xor	eax, eax
 errinb:	ret
 
-iout:	cmp	[ebx].I80.outb, 0
-	jz	short nooutb
+iout:	mov	eax, [ebx].I80.outb
+	test	eax, eax
+	jz	short erroutb
 	movzx	edx, dl
 	movzx	eax, [ebx].I80r.regA
 	push	eax
@@ -1832,7 +1842,7 @@ IFNDEF	I8XFASTCB
 ELSE
 	mov	ecx, ebx
 ENDIF
-	call	dword ptr [ebx].I80.outb
+	call	eax
 IFNDEF	I8XSTDCB
 IFDEF	I8XCCB
 	add	esp, 12
@@ -1842,7 +1852,7 @@ ENDIF
 ENDIF
 	test	eax, eax
 	js	short erroutb
-nooutb:	xor	eax, eax
+	xor	eax, eax
 erroutb:
 	ret
 
