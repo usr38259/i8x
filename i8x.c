@@ -30,7 +30,7 @@ void i80Init (I8X *i80)
 #ifndef NOI8085
 void i85Init (I8X *i85)
 {
-	i80Init (i85);
+	i8xInit (i85);
 	i85->iexe = i85idef;
 	i85->inte |= 2;
 }
