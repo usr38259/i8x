@@ -2,17 +2,19 @@
 .386
 .model flat
 
+;NOI8080	equ -1
+;NOI8085	equ -1
+;I8XEXACTF	equ -1
+;I8XCOMPACT	equ -1
 ;I8XFASTCB	equ -1
 ;I8XSTDCB	equ -1
 ;I8XFASTEXC	equ -1
 ;I8XSTDEXC	equ -1
 ;I8XFETCHOP	equ -1
-;NOI8080	equ -1
-;NOI8085	equ -1
 ;I8XI386ONLY	equ -1
 ;I8XMEMSUB	equ -1
+;I8XFOLDOPM	equ -1
 ;I8XOPCOMPACT	equ -1
-;I8XEXACTF	equ -1
 ;I8XWRLOG	equ -1
 ;I8XCOUNTERS	equ -1
 
@@ -65,6 +67,11 @@ I80r	struct
 	regA	db ?
 	regF	db ?
 I80r	ends
+
+IFDEF	I8XCOMPACT
+I8XMEMSUB	equ -1
+I8XOPCOMPACT	equ -1
+ENDIF
 
 .const
 
@@ -944,13 +951,15 @@ ENDIF
 
 IFNDEF	NOI8080
 IFNDEF	NOI8085
+
 I8XMIX	equ	-1
-ENDIF
-ENDIF
 
 TSTZ85	macro
 	test	[ebx].I80.regINTE, 2
 	endm
+
+ENDIF
+ENDIF
 
 ilxi:	shr	eax, 3
 	and	eax, 110b
@@ -1265,9 +1274,11 @@ ihlt:	mov	[ebx].I80.flag, -1
 	xor	eax, eax
 	ret
 
-IFNDEF	NOFOLDOPM
+IFDEF	I8XFOLDOPM
 IFNDEF	I8XMEMSUB
+IFNDEF	I8XOPCOMPACT
 FOLDOPMP	equ 1
+ENDIF
 ENDIF
 ENDIF
 
@@ -1844,10 +1855,10 @@ ELSE
 ENDIF
 	call	eax
 IFNDEF	I8XSTDCB
-IFDEF	I8XCCB
-	add	esp, 12
-ELSE
+IFDEF	I8XFASTCB
 	add	esp, 4
+ELSE
+	add	esp, 12
 ENDIF
 ENDIF
 	test	eax, eax

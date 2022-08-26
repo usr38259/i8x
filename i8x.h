@@ -60,14 +60,25 @@ extern unsigned char i85ilen [256];
 extern unsigned char i85itck [256];
 #endif
 
+typedef struct _I8Xr {
+	unsigned char c, b, e, d, l, h;
+	unsigned short sp;
+	unsigned char a, f;
+} I8Xr;
+
 typedef struct _I8X
 {
-	unsigned short bc;
-	unsigned short de;
-	unsigned short hl;
-	unsigned short sp;
-	unsigned short psw;
-	unsigned short pc;
+	union {
+		I8Xr	r;
+		struct {
+			unsigned short bc;
+			unsigned short de;
+			unsigned short hl;
+			unsigned short sp;
+			unsigned short psw;
+			unsigned short pc;
+		};
+	};
 	signed char inte;
 	signed char resvd;
 	signed char flag;

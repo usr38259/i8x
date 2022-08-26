@@ -48,8 +48,8 @@ int _CRTAPI1 main ()
 
 	while (1) {
 		if (i80.pc == 0) break;
-		if (i80.pc == 5) switch (i80.bc & 0xff) {
-		case 2: putch (i80.de & 0xff); break;
+		if (i80.pc == 5) switch (i80.r.c) {
+		case 2: putch (i80.r.e); break;
 		case 9: for (i = i80.de; mem [i] != '$' && i <= 0xffff; i++)
 				putch (mem [i]); break;
 		default: puts ("Unsupported BDOS call"); return 0;
