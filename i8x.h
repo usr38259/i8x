@@ -110,8 +110,8 @@ typedef struct _I8X
 	void *data;
 } I8X;
 
-void i80Init (I8X *i80);
 #ifndef NOI8080
+void i80Init (I8X *i80);
 int I8XEXECALL i80Execute (I8X *i80);
 #define i80Dasm(instr, op, f) i8xDasm (instr, op, f)
 #endif
